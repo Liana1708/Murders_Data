@@ -1,0 +1,157 @@
+---
+title: "Analysing_Violent_Offences_Data"
+author: "Liana"
+output: html_document
+---
+
+```{r}
+getwd()
+setwd('C:/Users/MikasaServer/Desktop/SJIC/R ANALYSIS/FOI VIOLENT CRIMES')
+
+```
+
+
+#Gwent
+```{r}
+library(readxl)
+Rapes_Gwent <- read_excel('Gwent.xlsx', sheet = 'Rape')
+library(stringr)
+library(dplyr)
+library(ggplot2)
+
+#Rapes Gwent each year
+Total_rapes_Gwent <- Rapes_Gwent %>% 
+filter(RAPE=='RAPE OF A FEMALE AGED 16 OR OVER (S1PT SOA 2003)'|RAPE=='RAPE OF A FEMALE AGED UNDER 16 (S1PT SOA 2003)'|RAPE=='RAPE OF A FEMALE CHILD UNDER 13 BY A MALE (S.5(PT) SOA 2003)'|RAPE=='RAPE OF A MALE AGED 16 OR OVER (S.1(PT) SOA 2003)'|RAPE=='RAPE OF A MALE AGED UNDER 16 (S1PT SOA 2003)'|RAPE=='RAPE OF A MALE CHILD UNDER 13 BY A MALE (S.5(PT) SOA 2003)') %>% 
+  mutate(Cases=TOTAL) %>% 
+  group_by(YEAR) %>% 
+  summarise(TOTAL=sum(Cases))
+
+#Rapes charged or summoned per year 
+Gwent_charged_summonsed <- Rapes_Gwent %>% 
+  filter(RAPE=='1: Charged'|RAPE=='1: Summonsed/postal requisition') %>% 
+  group_by(YEAR) %>% 
+  summarise(sum(TOTAL))
+
+
+#Percent rapes charged or summoned per year
+
+percent_charged_Gwent<- as_data_frame(Gwent_charged_summonsed$`sum(TOTAL)`/Total_rapes_Gwent$TOTAL*100)
+
+percent_charged_Gwent <- percent_charged_Gwent[-6, ]
+percent_charged_Gwent <- percent_charged_Gwent %>% 
+  rename(PERCENT_CHARGED=value)
+  
+
+
+#Outcomes per year #Most common outcome (Evidential difficulties)   
+Rapes_Gwent %>% 
+group_by(RAPE, YEAR) %>% 
+  summarise(sum(TOTAL))
+
+ Rapes_Gwent %>% 
+  filter(YEAR=='2015') %>% 
+   group_by(RAPE)
+ 
+ 
+  Rapes_Gwent %>% 
+  filter(YEAR=='2016') %>% 
+   group_by(RAPE)
+  
+    Rapes_Gwent %>% 
+  filter(YEAR=='2017') %>% 
+  group_by(RAPE) 
+
+      Rapes_Gwent %>% 
+  filter(YEAR=='2018') %>% 
+   group_by(RAPE)
+      
+      Rapes_Gwent %>% 
+  filter(YEAR=='2019') %>% 
+   group_by(RAPE)
+      
+     
+                 
+       Rapes_Gwent %>% 
+  filter(YEAR=='2015') %>% 
+   filter(str_detect(RAPE, '14: Victim declines/unable to support action to identify offender')|str_detect(RAPE, '16: Victim declines/withdraws support - named suspect identified')|str_detect(RAPE,'15: Police - named suspect, victim supports but evidential difficulties')|str_detect(RAPE, '15: CPS - named suspect, victim supports but evidential difficulties'	)) %>% 
+  group_by(RAPE) %>% 
+  summarise(total=sum(TOTAL))
+  
+              Rapes_Gwent %>% 
+  filter(YEAR=='2016') %>% 
+   filter(str_detect(RAPE, '14: Victim declines/unable to support action to identify offender')|str_detect(RAPE, '16: Victim declines/withdraws support - named suspect identified')|str_detect(RAPE,'15: Police - named suspect, victim supports but evidential difficulties')|str_detect(RAPE, '15: CPS - named suspect, victim supports but evidential difficulties'	)) %>% 
+  group_by(RAPE) %>% 
+  summarise(total=sum(TOTAL))
+       
+                  Rapes_Gwent %>% 
+  filter(YEAR=='2017') %>% 
+   filter(str_detect(RAPE, '14: Victim declines/unable to support action to identify offender')|str_detect(RAPE, '16: Victim declines/withdraws support - named suspect identified')|str_detect(RAPE,'15: Police - named suspect, victim supports but evidential difficulties')|str_detect(RAPE, '15: CPS - named suspect, victim supports but evidential difficulties'	)) %>% 
+  group_by(RAPE) %>% 
+  summarise(total=sum(TOTAL))
+                  
+                     Rapes_Gwent %>% 
+  filter(YEAR=='2018') %>% 
+   filter(str_detect(RAPE, '14: Victim declines/unable to support action to identify offender')|str_detect(RAPE, '16: Victim declines/withdraws support - named suspect identified')|str_detect(RAPE,'15: Police - named suspect, victim supports but evidential difficulties')|str_detect(RAPE, '15: CPS - named suspect, victim supports but evidential difficulties'	)) %>% 
+  group_by(RAPE) %>% 
+  summarise(total=sum(TOTAL))
+                  
+                           Rapes_Gwent %>% 
+  filter(YEAR=='2019') %>% 
+   filter(str_detect(RAPE, '14: Victim declines/unable to support action to identify offender')|str_detect(RAPE, '16: Victim declines/withdraws support - named suspect identified')|str_detect(RAPE,'15: Police - named suspect, victim supports but evidential difficulties')|str_detect(RAPE, '15: CPS - named suspect, victim supports but evidential difficulties'	)) %>% 
+  group_by(RAPE) %>% 
+  summarise(total=sum(TOTAL))
+                  
+                     
+       #Child abuse (Rape)
+       
+       
+```
+
+
+#North Wales
+```{r}
+Violent_North_Wales <- read_excel('Violent crimes North Wales.xlsx', sheet=1)
+
+Rape_North_Wales <- Violent_North_Wales %>% 
+  filter(`Offence HO Group1`=='02. Sexual Offences') %>% 
+  filter(str_detect(`HO Description`,'Rape')|str_detect(`HO Description`,'rape'))
+
+Rape_North_Wales %>% 
+  group_by(`HO Description`) %>% 
+  summarise(total=n())
+
+Rape_North_Wales <- Rape_North_Wales %>% 
+  filter(`HO Description`=='Multi Offender: Rape of a female aged 16 or over'|`HO Description`=='Multi Offender: Rape of a female aged under 16'|`HO Description`=='Multi Offender: Rape of a female child under 13 by a male'|`HO Description`=='Multi Offender: Rape of a male aged over 16'|`HO Description`=='Multi Offender: Rape of a male aged under 16'|`HO Description`=='Multi Offender: Rape of a male child under 13 by a male'|`HO Description`=='Single Offender: Rape of a female aged 16 or over'|`HO Description`=='Single Offender: Rape of a female aged under 16'|`HO Description`=='Single Offender: Rape of a female child under 13 by a male'|`HO Description`=='Single Offender: Rape of a male aged 16 or over'|`HO Description`=='Single Offender: Rape of a male aged under 16'|`HO Description`=='Single Offender: Rape of a male child under 13 by a male')
+
+#Total rapes per year
+Total_Rapes_North_Wales <- Rape_North_Wales %>% 
+  group_by(`Calendar Year`) %>% 
+  summarise(total=n())
+
+#Charged/summoned per year
+
+Rape_North_Wales %>% 
+  group_by(Status) %>% 
+  summarise(total=n())
+
+North_Wales_charged_summoned <- Rape_North_Wales %>% 
+  filter(Status=='DA person charged'|Status=='DA person summoned') %>% 
+  group_by(`Calendar Year`) %>% 
+  summarise(total=n())
+
+
+#Percent charged/summonsed per year
+percent_charged_North_Wales<- as_data_frame(North_Wales_charged_summoned$total/Total_Rapes_North_Wales$total*100)
+
+
+#Most common outcome per year
+
+ Rape_North_Wales %>% 
+  filter(`Calendar Year`=='2015') %>% 
+  group_by(Status) %>% 
+  summarise(total=n())
+
+
+
+```
+

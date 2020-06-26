@@ -1,0 +1,524 @@
+---
+title: "R Analysing murders/domestic abuse data"
+author: "Liana Bravo"
+output: html_document
+---
+
+## Derbyshire
+
+```{r}
+
+library(stringr)
+library(dplyr)
+library(readr)
+library(tidyverse)
+library(ggplot2)
+Vic_Ethn_Derbyshire <- Derbyshire %>% 
+  group_by(Victims_Ethnicity) %>% 
+  summarise(total=n())
+
+Vic_Gen_Derbyshire <- Derbyshire %>% 
+  group_by(Victim_Gender) %>% 
+  summarise(total=n())
+Vic_Gen_and_Eth_Derbyshire <- 
+  
+  Derbyshire %>% 
+  group_by(Victims_Ethnicity, Victim_Gender) %>% 
+summarise(total=n())
+
+Derbyshire %>% 
+  filter(Offender_Ethnicity=='NFA against suspects')
+
+Motiv_Derbyshire <- Derbyshire %>% 
+  group_by(Motivation.Circumstances) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+Rel_Derbyshire <- Derbyshire %>% 
+  group_by(Relationship_between_victim_and_offender) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+Domestic_abuse_Derbyshire <- Derbyshire %>% 
+  filter(Relationship_between_victim_and_offender=='Partner'|Relationship_between_victim_and_offender=='Ex-Partner / Cohabitee'|Relationship_between_victim_and_offender==	'Ex Partner'|Relationship_between_victim_and_offender=='Ex Partners'|Relationship_between_victim_and_offender=='Spouse'|Relationship_between_victim_and_offender=='Partners/Cohabitee') %>% 
+  summarise(total_domestic_abuse=n())
+
+
+Domestic_abuse_Percentage_Derbyshire <- Derbyshire %>% 
+  summarise(percentage=Domestic_abuse_Derbyshire/n()*100)
+
+Class_as_domestic_abuse_Derbyshire <- Derbyshire %>% 
+    filter(str_detect(Motivation.Circumstances,'Domestic')) 
+
+
+#Derbyshire domestic abuse (excluding partner, spouse, husband...) (17)
+Derbyshire%>% 
+ filter(Relationship_between_victim_and_offender=='Parents'| Relationship_between_victim_and_offender=='	Siblings'|Relationship_between_victim_and_offender=='Parent'|Relationship_between_victim_and_offender=='Parents and friend'|Relationship_between_victim_and_offender=='Mother / Son'|Relationship_between_victim_and_offender=='Brother'|Relationship_between_victim_and_offender=='Grandparent'|Relationship_between_victim_and_offender=='Aunt / Nephew') %>% 
+  group_by(Relationship_between_victim_and_offender) %>% 
+summarise(total=n()) %>% 
+  arrange(desc(total))
+
+
+Derbyshire %>% 
+  count()
+
+#Domestic abuse (counting all relationships (mother, etc) :29 (domestic abuse understood as all family, relatives, we don't know if they live in the same house)
+
+
+(17+12)/90*100   #32,22%
+
+
+```
+
+#Devon and Cornwall
+```{r}
+Domestic_abuse_percent_Devon_and_Cornwall <-Devon_and_Cornwall %>% 
+group_by(`Domestic abuse`) %>%   
+  summarise(total=n()) %>% 
+  mutate(percent=total/sum(total)*100)
+
+Domestic_abuse__outcome_Devon_and_Cornwall <-Devon_and_Cornwall %>% 
+group_by(`Domestic abuse`, Outcome) %>%   
+  summarise(total=n())
+
+Domestic_abuse_victims_sex_Devon_and_Cornwall <- Devon_and_Cornwall %>% 
+  filter(`Domestic abuse`=='Yes') %>% 
+  group_by(Victim_sex, Offender1_Sex) %>% 
+  summarise(total=n())
+
+Devon_and_Cornwall %>% 
+  group_by(Victim_ethnicity, Outcome) %>% 
+  summarise(total=n())
+
+Devon_and_Cornwall %>% 
+  group_by(`Victim age group`) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+Devon_and_Cornwall %>% 
+  group_by(`Victim age group`, `Offender1_Sex`) %>% 
+  filter(`Victim age group`=='0-15') %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+Devon_and_Cornwall %>% 
+  group_by(`Victim_sex`, `Offender1_Sex`) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+Devon_and_Cornwall %>% 
+   filter(`Domestic abuse`=='Yes') %>%
+  group_by(Victim_sex, Offender1_Sex) %>% 
+  summarise(total=n())
+
+Devon_and_Cornwall %>% 
+  filter(`Domestic abuse`=='Yes') %>% 
+  summarise(total=n())
+
+
+#Domestic abuse (counting all relationships (mother, etc) :17 (domestic abuse understood as all family, relatives, we don't know if they live in the same house)
+55/111*100  #49,54%
+
+
+```
+
+#Dorset
+
+```{r}
+Dorset_solved %>% 
+  group_by(`Offender / Victim Relationship`) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+Dorset_solved %>% 
+  group_by(`Victim Gender`,`Offender / Victim Relationship`) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+Dorset_solved %>% 
+  group_by(`Offender / Victim Relationship`, `Victim Gender`) %>% 
+  filter(`Offender / Victim Relationship`=='Spouse/cohabitee/partner'|`Offender / Victim Relationship`=='Ex spouse/cohabitee/partner'|`Offender / Victim Relationship`=='Common Law Spouse or cohabiting partner') %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+Dorset_solved %>% 
+  group_by(`Victim Gender`,`Offender Gender`) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+Dorset_solved %>% 
+  filter(`Victim Gender`=='Female',`Offender Gender`=='Male') %>% 
+  group_by(`Offender / Victim Relationship`) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+Dorset_solved %>% 
+  group_by(Year) %>% 
+  summarise(total=n())
+
+Dorset_solved %>% 
+  count()
+
+#Dorset motivation in general 
+Dorset_solved %>% 
+  select(`Offender / Victim Relationship`) %>% 
+  group_by(`Offender / Victim Relationship`) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+#Domestic abuse (counting all relationships (mother, etc) :17 (domestic abuse understood as all family, relatives, we don't know if they live in the same house)
+17/44*100  #38,63%
+
+```
+
+#Gwent 
+
+```{r}
+Gwent %>% 
+  group_by(`Relationship to Victim`) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+Domestic_abuse_Gwent <- Gwent %>% 
+  filter(`Relationship to Victim`=='Boyfriend / Girlfriend' |	`Relationship to Victim`=='Spouse')
+
+6/27*100 #but they are 8 really. 
+8/27*100
+
+#all victims female, all offenders male. 
+
+Gwent %>% 
+  count()
+
+#Gwent motivation in general 
+Gwent %>% 
+  select(`Relationship to Victim`) %>% 
+  group_by(`Relationship to Victim`) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+#Domestic abuse (counting all relationships (mother, etc) :11 (domestic abuse understood as all family, relatives, we don't know if they live in the same house)
+11/27*100  #40,74%
+
+```
+
+#Leicestershire
+
+```{r}
+Leicestershire%>% 
+  group_by(`Relationship to offender 1`,`Relationship to offender 2`) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total)) 
+
+Leicestershire%>% 
+  group_by(`Relationship to offender 1`) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total)) 
+
+Domestic_abuse_Leicestershire <- Leicestershire %>% 
+  filter(`Relationship to offender 1`=='PARTNER'|`Relationship to offender 1`=='EX PARTNER'|`Relationship to offender 1`=='GIRLFRIEND'|`Relationship to offender 1`=='HUSBAND') %>% 
+  summarise(total=n())
+
+Total_crimes_Leicestershire <- Leicestershire %>% 
+  count()
+
+Domestic_abuse_Percentage_Leicestershire <- Domestic_abuse_Leicestershire/Total_crimes_Leicestershire*100
+
+
+Leicestershire %>% 
+  group_by(`Victim Sex`,`Offender 1 Sex`) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+Female_victims_Leicestershire <- Leicestershire %>% 
+  filter(`Victim Sex`=='F') %>% 
+  select(`Relationship to offender 1`) %>% 
+  group_by(`Relationship to offender 1`) %>% 
+  summarise(total=n()) %>% 
+  summarise(sum(total))
+
+sum(Female_victims_Leicestershire$total)
+
+#Male victims. 58
+Leicestershire %>% 
+  filter(`Victim Sex`=='M') %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+#3 domestic abuse male victims
+Leicestershire %>% 
+  filter(`Victim Sex`=='M') %>% 
+  select(`Relationship to offender 1`) %>% 
+  group_by(`Relationship to offender 1`) %>% 
+  summarise(total=n()) %>% 
+  summarise(sum(total))
+
+#Domestic abuse offender Ethnicity 
+Domestic_abuse_Leicestershire %>% 
+  group_by(`Offender 1 Ethnicity:`) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+#Leicestershire motivation in general 
+Leicestershire %>% 
+  select(`Relationship to offender 1`, `Relationship to offender 2`) %>% 
+  group_by(`Relationship to offender 1`) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+#Domestic abuse (counting all relationships (mother, etc) :37 (domestic abuse understood as all family, relatives, we don't know if they live in the same house)
+37/93*100  #39,78%
+  
+```
+
+#North Wales 
+```{r}
+#Total murders
+North_Wales_cleaned %>% 
+  count()
+
+Domestic_abuse_North_Wales <- North_Wales_cleaned %>% 
+  filter(`Offender_Victim_Relationship`=='Spouse/partner'|`Offender_Victim_Relationship`=='Partner:Heterosexual') %>% 
+  summarise(total=n())
+
+#21% domestic abuse North Wales (Partner, spouse, etc not counting son, father, other family)
+Dom_abuse_North_Wales_Percentage <- Domestic_abuse_North_Wales/count(North_Wales_cleaned)*100
+
+#Female victims domestic abuse North Wales . 23. 
+North_Wales_cleaned %>% 
+  filter(`Victim_Gender`=='F') %>% 
+  select('Offender_Victim_Relationship') %>% 
+  group_by(Offender_Victim_Relationship) %>% 
+  summarise(total=n()) %>% 
+  summarise(sum(total))
+
+North_Wales_cleaned$Victim_Gender
+
+#North Wales motivation in general 
+North_Wales_cleaned %>% 
+  select('Offender_Victim_Relationship') %>% 
+  group_by(Offender_Victim_Relationship) %>% 
+  summarise(total=n())
+
+#Domestic abuse (counting all relationships (mother, etc) :17
+17/55*100   #30.90%
+
+
+```
+
+#South Wales 
+
+```{r}
+South_Wales <- read_csv('CLEAN DATA- READY TO ANALYSE/South_Wales.csv') %>% 
+select(-X1)
+
+Domestic_abuse_South_Wales <- South_Wales %>% 
+  filter(Relationship_to_victim=='Ex Spouse / partner'|Relationship_to_victim=='Spouse / partner'|Relationship_to_victim=='spouse / partner'|Relationship_to_victim=='spouse and son'|	Relationship_to_victim=='ex partner'|Relationship_to_victim=='Partner / Spouse'|Relationship_to_victim=='Spouse/partner') %>% 
+  group_by(Relationship_to_victim) %>% 
+  summarise(total=n()) %>% 
+  summarise(Domestic_abuse_total=sum(total))
+
+South_Wales %>% 
+  group_by(Relationship_to_victim) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+South_Wales %>% 
+  count()
+
+Domestic_abuse_South_Wales_Percentage <- Domestic_abuse_South_Wales/count(South_Wales)*100
+
+
+#Female victims domestic abuse South_Wales (15)
+South_Wales%>% 
+  filter(str_detect(VICTIM, 'Female')) %>% 
+  select(Relationship_to_victim) %>% 
+  group_by(Relationship_to_victim) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total)) 
+
+
+#Total female victims (not only domestic abuse) (28)
+South_Wales%>% 
+  filter(str_detect(VICTIM, 'Female')) %>% 
+  count()
+
+
+#Male victims domestic abuse South_Wales%>% (5)
+  South_Wales %>% 
+    filter(str_detect(VICTIM, 'Male')) %>% 
+  select(Relationship_to_victim) %>% 
+  group_by(Relationship_to_victim) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total)) 
+
+  ##Total male victims (not only domestic abuse)  (67)
+  South_Wales%>% 
+  filter(str_detect(VICTIM, 'Male')) %>% 
+  count()
+
+  #South Wales motivation in general 
+South_Wales %>% 
+  select(Relationship_to_victim) %>% 
+  group_by(Relationship_to_victim) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+#Domestic abuse (counting all relationships (mother, etc) :31)
+31/95*100  #32,63%
+  
+```
+
+#SURREY
+```{r}
+#Domestic abuse Surrey  (7)
+Domestic_abuse_Surrey <- Surrey %>% 
+  filter(Relationship=='Partner'|Relationship=='Husband') %>% 
+  group_by(Relationship) %>% 
+  summarise(total=n()) %>% 
+  summarise(sum(total))
+
+#Total murders Surrey (37)
+Surrey %>% 
+  count()
+
+Domestic_abuse_Surrey_Percentage <- Domestic_abuse_Surrey/count(Surrey)*100
+
+#Female victims domestic abuse Surrey (only husband or partner (7). Counting father and son (11)
+Surrey %>% 
+  filter(Victim_Gender=='Female') %>% 
+  select(Relationship) %>% 
+  group_by(Relationship) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total)) 
+
+
+#Total female victims (not only domestic abuse)  (18)
+Surrey%>%
+  filter(Victim_Gender=='Female') %>% 
+  count()
+
+#Relationship to female victims Surrey (All offenders men, husband and partner 7, more than any other relationship)
+  Surrey %>% 
+  filter(Victim_Gender=='Female') %>% 
+  group_by(Offender_Gender, Relationship) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total)) 
+  
+  #Male victims domestic abuse Surrey (only partner, spouse, not mother or son ) -> (0)
+  Surrey%>% 
+    filter(Victim_Gender=='Male') %>% 
+  select(Relationship) %>% 
+  group_by(Relationship) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total)) 
+
+  ##Total male victims (not only domestic abuse) Surrey (67)
+  Surrey %>%  
+  filter(Victim_Gender== 'Male') %>% 
+  count()
+
+  #Surrey motivation in general 
+Surrey %>% 
+  select(Relationship) %>% 
+  group_by(Relationship) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+  
+#Domestic abuse (counting all relationships (mother, etc) :15 
+15/37*100   #40%
+  
+  
+```
+#Wiltishire
+```{r}
+Domestic_abuse_Wiltishire<- Wiltishire %>% 
+  filter(Relationship=='Spouse'|Relationship=='Ex-Boyfriend'|Relationship=='Boyfriend'|Relationship==	'Girlfriend') %>% 
+  group_by(Relationship) %>% 
+  summarise(total=n()) %>% 
+  summarise(sum(total))
+
+Wiltishire %>% 
+  count()
+
+#Domestic abuse percentage Wiltishire 25,80%  (only partners)
+Domestic_abuse_Wiltishire/count(Wiltishire)*100
+
+  
+
+#Domestic abuse victims 7 women 1 man.
+
+Wiltishire %>% 
+  filter(Relationship=='Spouse'|Relationship=='Ex-Boyfriend'|Relationship=='Boyfriend'|Relationship==	'Girlfriend') %>% 
+  group_by(`Victim's Gender`, `Offender/Principal suspect Gender`) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+#Female victims. 
+Wiltishire %>% 
+  filter(`Victim's Gender`=='Female') %>% 
+  group_by(Relationship) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+  #Wiltishire motivation in general 
+Wiltishire %>% 
+  select(Relationship) %>% 
+  group_by(Relationship) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+  
+Wiltishire %>% 
+  count()
+#Domestic abuse (counting all relationships (mother, etc) :
+10/31 *100   #32,25%
+  
+```
+
+#West Midlands 
+```{r}
+
+#WM total:354 
+West_Midlands_cleaned %>% 
+  count()
+
+West_Midlands_cleaned %>% 
+  filter(str_detect(Cause,'Domestic'))
+
+West_Midlands_cleaned %>% 
+  group_by(Cause) %>% 
+  summarise(total=n()) %>% 
+  arrange(desc(total))
+
+#Male and female victims 
+West_Midlands_cleaned %>% 
+ group_by(Victim_Gender) %>% 
+  summarise(total=n())
+
+#Female victims offenders
+West_Midlands_cleaned %>% 
+  filter(Victim_Gender=='Female') %>% 
+  group_by(Offender_Gender) %>% 
+  summarise(total=n())
+
+#Male victims offenders
+West_Midlands_cleaned %>% 
+  filter(Victim_Gender=='Male') %>% 
+  group_by(Offender_Gender) %>% 
+  summarise(total=n())
+
+
+```
+
+#Government public datatabases. 
+#Homicides England and Wales 2010-2019
+```{r}
+library(readxl)
+victims_homicideinenglandandwales_2010to2019<- read_excel('PUBLIC DATABASES/homicideinenglandandwalesyearendingmarch201912022020152801 (3).xlsx', sheet = 11)
+getwd()
+setwd( "C:/Users/MikasaServer/Desktop/SJIC/R ANALYSIS/FOI MURDERS")
+rm(victims_homicideinenglandandwales_2010to2019)
+
+```
+
+

@@ -1,0 +1,566 @@
+---
+title: "Murders"
+author: "Liana Bravo"
+output: html_document
+---
+
+```{r}
+library(readr)
+library(dplyr)
+library(stringr)
+library(ggplot2)
+library(tidyverse)
+library(readxl)
+```
+
+#Set Working Directory and import the data of some police forces
+```{r}
+
+setwd("C:/Users/MikasaServer/Desktop/SJIC/R ANALYSIS/FOI MURDERS")
+
+Wiltishire <- read_excel('Wiltishire.xlsx')
+Dorset_solved <- read_excel('Dorset.xlsx', sheet=3)
+Surrey <- read_excel('Surrey.xlsx', sheet=2)
+Gwent <- read_excel('Gwent.xlsx')
+Leicestershire_outcome_case_number <- read_excel('Leicestershire.xlsx', sheet=1)
+Leicestershire_parties_charact <- read_excel('Leicestershire.xlsx', sheet=2)
+Devon_and_Cornwall <- read_excel('DevonandCornwall.XLSX', sheet=2)
+```
+
+#Cleaning North Wales (data from PDFs)
+```{r}
+
+to_clean_North_Wales <- read_excel('to clean North Wales.xlsx')
+
+colnames(to_clean_North_Wales)
+
+to_clean_North_Wales  <- to_clean_North_Wales %>% 
+                         select(Year=...1, Status=...2, Home_Office_Description=Home, Victim_Nationality=...4, Victim_Age_Group=Victim, Victim_Ethnicity=...6, Victim_Gender=...7,Offender_Victim_Relationship='Offender/', Offender_Nationality=...9, Offender_Ethnicity=...10, Offender_Gender=...11)
+
+colnames(to_clean_North_Wales)
+
+to_clean_North_Wales <- to_clean_North_Wales[-c(1,2), ]
+
+ wth_NA_to_clean_North_Wales<- to_clean_North_Wales %>% 
+  filter(!is.na(Year))
+ 
+ wth_NA_to_clean_North_Wales <-  wth_NA_to_clean_North_Wales %>% 
+                              mutate(Home_Office_Description=str_replace(Home_Office_Description,'over', 'Murder of persons aged one year or')) 
+                                           
+   wth_NA_to_clean_North_Wales$Home_Office_Description <-             wth_NA_to_clean_North_Wales$Home_Office_Description %>%                        
+  str_replace('Murder of persons aged one year or','Murder of persons aged one year or over') %>% 
+  str_replace('Murder - of','Murder of persons aged one year or over') %>% 
+  str_replace('of age', 'Murder of persons  under 1 year of age')
+     
+   wth_NA_to_clean_North_Wales[15,3] <- "Corporate Manslaughter"
+  wth_NA_to_clean_North_Wales[29,3] <- "Corporate Manslaughter"
+  wth_NA_to_clean_North_Wales[44,3] <- "Manslaughter by virtue of diminish responsibility"
+      
+ wth_NA_to_clean_North_Wales$Status <- wth_NA_to_clean_North_Wales$Status %>% 
+   str_replace('summoned','DA person summoned') 
+ 
+   wth_NA_to_clean_North_Wales[18,2] <- 'Victim/key witness	dead or too ill-Named suspect	identified'
+  wth_NA_to_clean_North_Wales[20,2] <-'Victim	supports/evidential	difficulties Named suspect identified'
+   wth_NA_to_clean_North_Wales[23,2] <- 'Victim/key witness	dead or too ill-Named suspect	identified'
+  wth_NA_to_clean_North_Wales[24,2] <-'Victim	supports/evidential	difficulties Named suspect identified'
+   wth_NA_to_clean_North_Wales[29,2] <-'Victim	supports/evidential	difficulties Named suspect identified'
+   wth_NA_to_clean_North_Wales[30,2] <- 'Suspect too ill(physical/mental health)-Named suspect identified'
+   
+   wth_NA_to_clean_North_Wales[44,2] <- 'CPS Prosecution not in the public interest'
+  wth_NA_to_clean_North_Wales[49,2] <- 'Victim	supports/evidential	difficulties Named suspect identified'
+  
+   wth_NA_to_clean_North_Wales$Victim_Nationality <- wth_NA_to_clean_North_Wales$Victim_Nationality %>% 
+     str_replace('Not Recorded Recorded', 'Not Recorded') %>% 
+     	str_replace('Kingdom;', 'United Kingdom') %>% 
+     str_replace('Not', 'Not Recorded') 
+     
+  wth_NA_to_clean_North_Wales$Victim_Nationality <- wth_NA_to_clean_North_Wales$Victim_Nationality %>%                                                      str_replace(';United', 'United Kingdom') %>% 
+     	str_replace(';Nigeria;', 'Nigeria')
+   
+    wth_NA_to_clean_North_Wales$Victim_Age_Group <- wth_NA_to_clean_North_Wales$Victim_Age_Group %>% 
+                                             str_replace('36-36-36-45', '36-45') %>% 
+                                             str_replace('26-26-35', '26-35') %>% 
+                                             str_replace('17&17&Under', '17&Under')
+    
+    wth_NA_to_clean_North_Wales$Victim_Age_Group <- wth_NA_to_clean_North_Wales$Victim_Age_Group %>% 
+      str_replace('46-46-55','46-55') %>% 
+      str_replace('25','18-25')
+    
+    wth_NA_to_clean_North_Wales$Victim_Age_Group <- wth_NA_to_clean_North_Wales$Victim_Age_Group %>%          str_replace('02. 18-', '18-25') %>% 
+      str_replace('Over', '66&Over') %>% 
+      str_replace('65', '56-65')
+      
+       wth_NA_to_clean_North_Wales$Victim_Age_Group <- wth_NA_to_clean_North_Wales$Victim_Age_Group %>%        str_replace('04. 36-', '36-45') %>% 
+       str_replace('05. 46-', '46-55') %>% 
+       str_replace('06. 56-', '56-65')
+      
+      wth_NA_to_clean_North_Wales$Victim_Ethnicity <- wth_NA_to_clean_North_Wales$Victim_Ethnicity %>% 
+      str_replace(' ', 'White-North European')
+        wth_NA_to_clean_North_Wales$Victim_Ethnicity <- wth_NA_to_clean_North_Wales$Victim_Ethnicity %>%         str_replace('-NorthWhite-', '')
+         wth_NA_to_clean_North_Wales$Victim_Ethnicity <- wth_NA_to_clean_North_Wales$Victim_Ethnicity%>%
+           str_replace('WhiteNorth', '')
+         
+         wth_NA_to_clean_North_Wales$Victim_Ethnicity <- wth_NA_to_clean_North_Wales$Victim_Ethnicity%>%
+           str_replace('EuropeanEuropean', '')
+         wth_NA_to_clean_North_Wales$Victim_Ethnicity <- wth_NA_to_clean_North_Wales$Victim_Ethnicity%>%
+           str_replace('WhiteWhite', 'White')
+         
+          wth_NA_to_clean_North_Wales$Victim_Ethnicity <-wth_NA_to_clean_North_Wales$Victim_Ethnicity%>%
+           str_replace(' ','White-North European')
+
+   wth_NA_to_clean_North_Wales[38,6] <- "Black"
+  wth_NA_to_clean_North_Wales[26,8] <- "Parent (incl.step/adopted)"
+   wth_NA_to_clean_North_Wales[49,8] <- "Son (incl.step/half/adopted)"
+   wth_NA_to_clean_North_Wales[48,8] <-"Victimless/crime against state"
+   
+   wth_NA_to_clean_North_Wales$Offender_Victim_Relationship <-wth_NA_to_clean_North_Wales$Offender_Victim_Relationship%>%
+           str_replace('Heterosexual', 'Partner:Heterosexual')
+   
+    wth_NA_to_clean_North_Wales$Offender_Nationality <- wth_NA_to_clean_North_Wales$Offender_Nationality %>% 
+      str_replace('Kingdom;', 'United Kingdom') %>% 
+      str_replace('Recorded', 'Not Recorded') %>% 
+      str_replace(';Wales;', 'Wales') %>% 
+      str_replace(';England;', 'England') %>% 
+      str_replace(';Ireland;','Ireland' )
+    
+    
+    wth_NA_to_clean_North_Wales[22,9] <- 'United Kingdom'
+    
+    North_Wales_cleaned <- wth_NA_to_clean_North_Wales
+    rm(to_clean_North_Wales, wth_NA_to_clean_North_Wales)
+    
+    write_csv(North_Wales_cleaned, 'North Wales_cleaned_pending_check_with_PDF.csv')
+
+  ```
+  
+#More data from PDFs. 
+```{r}
+ 
+Derbyshire_1<-as.data.frame(tabulizer::extract_tables("Derbyshire pdf.PDF", pages=1))
+Derbyshire_2<-as.data.frame(tabulizer::extract_tables("Derbyshire pdf.PDF", pages=2))
+Derbyshire_3<-as.data.frame(tabulizer::extract_tables("Derbyshire pdf.PDF", pages=3))
+Derbyshire_4<-as.data.frame(tabulizer::extract_tables("Derbyshire pdf.PDF", pages=4))
+Derbyshire_5<-as.data.frame(tabulizer::extract_tables("Derbyshire pdf.PDF", pages=5))
+Derbyshire_6<-as.data.frame(tabulizer::extract_tables("Derbyshire pdf.PDF", pages=6))
+Derbyshire_7<-as.data.frame(tabulizer::extract_tables("Derbyshire pdf.PDF", pages=7))
+Derbyshire_8<-as.data.frame(tabulizer::extract_tables("Derbyshire pdf.PDF", pages=8))
+Derbyshire_9<-as.data.frame(tabulizer::extract_tables("Derbyshire pdf.PDF", pages=9))
+Derbyshire_10<-as.data.frame(tabulizer::extract_tables("Derbyshire pdf.PDF", pages=10))
+
+
+Derbyshire <- bind_rows(Derbyshire_1, Derbyshire_2,Derbyshire_3, Derbyshire_4, Derbyshire_5,Derbyshire_6,Derbyshire_7,Derbyshire_8,Derbyshire_9, Derbyshire_10)
+
+
+
+South_Wales_2010 <- as.data.frame(tabulizer::extract_tables("South Wales pdf/2010.pdf"))
+South_Wales_2011 <- as.data.frame(tabulizer::extract_tables("South Wales pdf/2011.pdf"))
+South_Wales_2012 <- as.data.frame(tabulizer::extract_tables("South Wales pdf/2012.pdf"))
+South_Wales_2013<- as.data.frame(tabulizer::extract_tables("South Wales pdf/2013.pdf"))
+South_Wales_2014 <- as.data.frame(tabulizer::extract_tables("South Wales pdf/2014.pdf"))
+South_Wales_2015 <- as.data.frame(tabulizer::extract_tables("South Wales pdf/2015.pdf"))
+South_Wales_2016 <- as.data.frame(tabulizer::extract_tables("South Wales pdf/2016.pdf"))
+South_Wales_2017 <- as.data.frame(tabulizer::extract_tables("South Wales pdf/2017.pdf"))
+South_Wales_2018 <- as.data.frame(tabulizer::extract_tables("South Wales pdf/2018.pdf"))
+South_Wales_2019 <- as.data.frame(tabulizer::extract_tables("South Wales pdf/2019.pdf"))
+South_Wales_2020 <- as.data.frame(tabulizer::extract_tables("South Wales pdf/2020.pdf"))
+
+
+
+South_Wales <- South_Wales_2010 %>% 
+  full_join(South_Wales_2011) %>% 
+  full_join(South_Wales_2012) %>% 
+  full_join(South_Wales_2013) %>% 
+  full_join(South_Wales_2014) %>% 
+  full_join(South_Wales_2015) %>% 
+  full_join(South_Wales_2016) %>% 
+  full_join(South_Wales_2017) %>% 
+  full_join(South_Wales_2018) %>% 
+  full_join(South_Wales_2019) %>% 
+  full_join(South_Wales_2020)
+
+
+South_Wales <- South_Wales %>% 
+  select(-X1) 
+South_Wales <- South_Wales %>% 
+  rename('OFFENCE_DATE'=X2,'VICTIM'=X3,'SUSPECT'=X4, 'Relationship_to_victim'=X5, 'Solved/unsolved'=X6,'CAUSE_OF_DEATH'=X7)
+
+South_Wales<- South_Wales %>% 
+  rename(Solved_Unsolved= Solved.unsolved)
+
+colnames(South_Wales)
+
+South_Wales <- South_Wales[!apply(South_Wales == "",1, all), ]
+South_Wales<- South_Wales[rowSums(is.na(South_Wales)) != ncol(South_Wales),]
+
+South_Wales_2014 <- South_Wales_2014 %>% 
+  select(-X2) 
+South_Wales_2014 <- South_Wales_2014 %>% 
+  rename(X3=X4, X4=X5, X5=X6, X6=X7, X7=X8)
+
+South_Wales_2017 <- South_Wales_2017 %>% 
+  rename(X2=X3, X3=X4, X4=X5, X5=X7, X6=X8, X7=X6)
+
+South_Wales_2018 <- South_Wales_2018 %>% 
+  rename(X5=X6, X6=X7, X7=X5)
+
+South_Wales_2019 <- South_Wales_2019 %>% 
+  rename(X5=X6, X6=X7, X7=X5)
+
+South_Wales_2020 <- South_Wales_2020 %>% 
+  select(-c(X1,X2,X3,X4,X5,X6))
+
+
+South_Wales_2020 <- South_Wales_2020 %>% 
+  rename(X1=X1.1, X2=X2.1,X3=X3.1,X4=X4.1,X5=X5.1,X6=X6.1)
+
+South_Wales_2020 <-South_Wales_2020 %>% 
+  rename(X2=X1, X3=X2,X4=X3,X5=X4,X6=X5, X7=X6)
+
+
+
+South_Wales_2017 <- South_Wales_2017 %>% 
+  select(-X2)
+
+South_Wales_2017 <- South_Wales_2017[, c(1, 2, 3, 4, 6,7,5)]
+South_Wales_2018 <- South_Wales_2018[, c(1, 2, 3, 4, 6,7,5)]
+South_Wales_2019 <- South_Wales_2019[, c(1, 2, 3, 4, 6,7,5)]
+
+write.csv(South_Wales, 'South_Wales_to_clean.csv')
+South_Wales_to_clean <- read.csv('South_Wales_to_clean.csv')
+South_Wales <- South_Wales_to_clean %>% 
+  select(-X)
+
+#MORE CLEANING SOUTH WALES
+rownames(South_Wales) <- NULL
+South_Wales <- South_Wales[-c(1,11,18,19,28,35,44,45,59,60,74,86,87,102,103), ]
+South_Wales$OFFENCE_DATE[1] <- '02/03/2010'
+South_Wales$CAUSE_OF_DEATH[c(2,8)]<- 'Violence-weapon and beating'
+South_Wales$CAUSE_OF_DEATH[26] <- 'Fatal stabbing-knife'
+South_Wales$CAUSE_OF_DEATH[65] <-  'Necrotising Fasciitis as a result of violence with weapon'
+South_Wales$CAUSE_OF_DEATH[c(76,80)] <- 'Violence-no weapon'
+South_Wales$CAUSE_OF_DEATH[86]<- 'Strangulation by ligature'
+
+South_Wales$OFFENCE_DATE <- as.character(South_Wales$OFFENCE_DATE)
+
+South_Wales$VICTIM <- as.character(South_Wales$VICTIM)
+South_Wales$SUSPECT <-as.character(South_Wales$SUSPECT)
+South_Wales$Relationship_to_victim <- as.character(South_Wales$Relationship_to_victim)
+South_Wales$Solved_Unsolved <- as.character(South_Wales$Solved_Unsolved)
+South_Wales$CAUSE_OF_DEATH <- as.character(South_Wales$CAUSE_OF_DEATH)
+
+South_Wales$Solved_Unsolved[13] <-	'Solved-Administring noxious substance'
+South_Wales$Solved_Unsolved[15] <- 'Solved-S18 assault with intent at court'
+South_Wales$Solved_Unsolved[51] <- 'Not guilty by reason of insanity'
+South_Wales$Solved_Unsolved[c(89,93,99,101)]	 <- 'Ongoing Charged-Pending Trial'
+South_Wales$Solved_Unsolved[76] <-'Solved 1 Male - Guilty murder	Female - not guitymale - not guilty'
+South_Wales$Solved_Unsolved[96] <- 'No further action - Self Defence'
+South_Wales$Solved_Unsolved[104]<- 'No further action - Based on Medical Evidence'
+South_Wales <- South_Wales[-c(3,14,27,52,66,77,81,87,90,94,97,100,102,105), ]
+
+example1 <- South_Wales_2011 %>% 
+  select(-X1) %>% 
+  filter(X2=='07/01/2011'| X2==	'19/02/2011')
+
+example1 <- example1 %>% 
+  rename('OFFENCE_DATE'=X2,'VICTIM'=X3,'SUSPECT'=X4, 'Relationship_to_victim'=X5, 'Solved/unsolved'=X6,'CAUSE_OF_DEATH'=X7)
+
+example1 <- example1 %>% 
+  rename('Solved_Unsolved'='Solved_unsolved')
+         
+South_Wales<- rbind(South_Wales, example1)
+
+rm(example1,example2)
+
+str(South_Wales)
+
+library(lubridate)
+
+South_Wales$OFFENCE_DATE <- dmy(South_Wales$OFFENCE_DATE)
+
+South_Wales <- South_Wales[!apply(South_Wales == "",1, all), ]
+South_Wales<- South_Wales[rowSums(is.na(South_Wales)) != ncol(South_Wales),]
+
+South_Wales <- South_Wales[-8, ]
+
+South_Wales$OFFENCE_DATE[40] <- dmy('20/09/2015')
+South_Wales$OFFENCE_DATE[44] <- dmy('01/12/2015')
+
+ write.csv(South_Wales, 'South_Wales_cleaned.csv')
+ 
+
+ write.csv(South_Wales_2010, 'South_Wales_2010.csv')
+ write.csv(South_Wales_2011, 'South_Wales_2011.csv')
+ write.csv(South_Wales_2012, 'South_Wales_2012.csv')
+ write.csv(South_Wales_2013, 'South Wales 2013.csv')
+ write.csv(South_Wales_2014, 'South_Wales_2014.csv')
+  write.csv(South_Wales_2015, 'South_Wales_2015.csv')
+   write.csv(South_Wales_2016, 'South_Wales_2016.csv')
+    write.csv(South_Wales_2017, 'South_Wales_2017.csv')
+     write.csv(South_Wales_2018, 'South_Wales_2018.csv')
+      write.csv(South_Wales_2019, 'South_Wales_2019.csv')
+       write.csv(South_Wales_2020, 'South_Wales_2020.csv')
+
+  
+#WEST MIDLANDS
+
+West_Midlands_2010 <- as.data.frame(tabulizer::extract_tables("West Midlands pdf/2010.pdf", pages=1))
+West_Midlands_2010_2 <- as.data.frame(tabulizer::extract_tables("West Midlands pdf/2010.pdf", pages=2))
+West_Midlands_2011 <- as.data.frame(tabulizer::extract_tables("West Midlands pdf/2011.pdf"))
+West_Midlands_2012_1 <- as.data.frame(tabulizer::extract_tables("West Midlands pdf/2012.pdf", pages = 1))
+West_Midlands_2012_2 <- as.data.frame(tabulizer::extract_tables("West Midlands pdf/2012.pdf", pages = 2))
+West_Midlands_2013 <- as.data.frame(tabulizer::extract_tables("West Midlands pdf/2013.pdf"))
+West_Midlands_2014 <- as.data.frame(tabulizer::extract_tables("West Midlands pdf/2014.pdf"))
+West_Midlands_2015 <- as.data.frame(tabulizer::extract_tables("West Midlands pdf/2015.pdf"))
+West_Midlands_2016 <- as.data.frame(tabulizer::extract_tables("West Midlands pdf/2016.pdf"))
+West_Midlands_2017 <- as.data.frame(tabulizer::extract_tables("West Midlands pdf/2017.pdf"))
+West_Midlands_2018 <- as.data.frame(tabulizer::extract_tables("West Midlands pdf/2018.pdf"))
+West_Midlands_2019 <- as.data.frame(tabulizer::extract_tables("West Midlands pdf/2019.pdf"))
+
+#Cant bind rows West Midlands. Diff columns names. Pendiente analise, clean and join. 
+
+
+```
+
+#NOW WE CLEAN DERBYSHIRE AND SOUTH WALES DATA FRAMES.
+```{r}
+library(dplyr)
+Derbyshire <- Derbyshire %>% 
+  mutate(Year='Year') 
+
+Derbyshire$Year[1:14] <-'2010-2011'
+Derbyshire$Year[16:29] <-'2011-2012'
+Derbyshire$Year[31:42] <-'2012-2013'
+Derbyshire$Year[44:49] <-'2013-2014'
+Derbyshire$Year[51:56] <-'2014-2015'
+Derbyshire$Year[58:72] <-'2015-2016'
+Derbyshire$Year[74:84] <-'2016-2017'
+Derbyshire$Year[86:95] <-'2017-2018'
+Derbyshire$Year[97:103] <-'2018-2019'
+Derbyshire$Year[105:110] <-'2019-2020'
+
+Derbyshire<- Derbyshire[-c(1,2,15,16,30,31,43,44,50,51,57,58,73,74,85,86,96,97,104,105), ]
+
+colnames(Derbyshire)
+
+Derbyshire <- Derbyshire %>% 
+rename('Victim_Gender'=X3, 'Victim_Nationality'=X4,'Victim_Age_group'=X5, 'Offender_Ethnicity'=X6,'Offender Gender'=X7, 'Offender Nationality'=X8,'Motivation/Circumstances'=X9,'Relationship_between_victim_and_offender'=X10)
+
+
+	
+write.csv(Derbyshire, 'Derbyshire.csv')
+Derbyshire <- read.csv('Derbyshire.csv')
+
+ Derbyshire <- Derbyshire %>% 
+   select(-X) 
+ 
+ 	
+write.csv(Derbyshire, 'CLEAN DATA- READY TO ANALISE/Derbyshire.csv')
+
+write.csv(Devon_and_Cornwall, 'Devon_and_Cornwall.csv')
+
+rm(South_Wales_2010,South_Wales_2011,South_Wales_2012,South_Wales_2013,South_Wales_2014, South_Wales_2015,South_Wales_2016, South_Wales_2017, South_Wales_2018, South_Wales_2019, South_Wales_2020)
+
+
+colnames(Surrey)
+
+Surrey <- Surrey %>% 
+  rename(Outcome='Murder Offences From 2012 to 2019', Year="...2", Victim_Ethnicity="...3", Victim_Gender="...4", Offender_thnicity="...5",	Offender_Gender="...6", Relationship="...7", Method="...8")
+
+Surrey <- Surrey %>% 
+  rename(Offender_ethnicity=Offender_thnicity)
+
+Surrey$Outcome[2:28] <- 'Offender_Charged'
+ Surrey$Outcome[31:37] <- 'Offender_Died'
+  Surrey$Outcome[40:46] <- "Unsolved"
+Surrey <- Surrey[-c(1,2,3,29,30,31,38,39,40), ]
+
+write.csv(Surrey, 'CLEAN DATA- READY TO ANALISE/Surrey.csv')
+
+rownames(Surrey) <- NULL bcvcbc
+
+Leicester_outcome <- Leicestershire_outcome_case_number %>% 
+  select("Year","Case Number","Outcome","Cause of Death:")
+
+rm(Leicestershire_outcome_case_number)
+
+Leicestershire <- left_join(Leicester_outcome,Leicestershire_parties_charact, by='Case Number')
+rm(North_Wales_cleaned)
+
+rm(Leicester_outcome,Leicestershire_parties_charact)
+
+Leicestershire <- Leicestershire[ ,-c(5,6)]
+
+Leicestershire <- Leicestershire %>% 
+  rename(Year=Year.x, `Cause_of_Death` = `Cause of Death:.x`)
+
+write.csv(Leicestershire, 'Leicestershire_cleaned.csv')
+
+```
+
+#Now we clean West Midlands data
+```{r}
+West_Midlands_2010<- full_join(West_Midlands_2010,West_Midlands_2010_2)
+rm(West_Midlands_2010_2)
+
+West_Midlands_2012 <- full_join(West_Midlands_2012_1,West_Midlands_2012_2)
+rm(West_Midlands_2012_1,West_Midlands_2012_2)
+
+West_Midlands_2010<- West_Midlands_2010[ ,c("X1", "X2", "X3" ,"X6","X4", "X5")]
+
+West_Midlands_2010 <- West_Midlands_2010 %>%
+  rename(Age_Range=X1, Victim_Gender=X2, Victim_Ethnicity=X3, Cause=X6, Offender_Gender= X4, Conviction=X5)
+  
+West_Midlands_2011 <- West_Midlands_2011 %>%
+  rename(Age_Range=X1, Victim_Gender=X2, Victim_Ethnicity=X3, Cause=X4, Offender_Gender= X5, Conviction=X6)
+  
+West_Midlands_2012 <- West_Midlands_2012 %>%
+  rename(Age_Range=X1, Victim_Gender=X2, Victim_Ethnicity=X3, Cause=X4, Offender_Gender= X5, Offender_Ethnicity=X6, Conviction=X7)
+
+West_Midlands_2013 <- West_Midlands_2013 %>%
+  rename(Age_Range=X1, Victim_Gender=X2, Victim_Ethnicity=X3, Cause=X4, Offender_Gender= X5, Offender_Ethnicity=X6, Conviction=X7)
+
+
+West_Midlands_2014 <- West_Midlands_2014 %>%
+  rename(Age_Range=X1, Victim_Gender=X2, Victim_Ethnicity=X3, Cause=X4, Offender_Gender= X5, Offender_Ethnicity=X6, Conviction=X7)
+
+West_Midlands_2015 <- West_Midlands_2015 %>%
+  rename(Weapon=X1, Age_Range=X2, Victim_Gender=X3, Victim_Ethnicity=X4, Cause=X5, Offender_Gender= X6, Offender_Ethnicity=X7, Conviction=X8)
+
+West_Midlands_2016 <- West_Midlands_2016 %>%
+  rename(Age_Range=X1, Victim_Gender=X2, Victim_Ethnicity=X3, Cause=X4, Offender_Gender= X5, Offender_Ethnicity=X6, Conviction=X7)
+
+West_Midlands_2017 <- West_Midlands_2017 %>%
+  rename(Weapon=X1, Age_Range=X2, Victim_Gender=X3, Victim_Ethnicity=X4,Offender_Gender= X5, Offender_Ethnicity=X6, Conviction=X7)
+
+West_Midlands_2018 <- West_Midlands_2018 %>%
+  rename(Weapon=X1, Age_Range=X2, Victim_Gender=X3, Victim_Ethnicity=X4,Offender_Gender= X5, Offender_Ethnicity=X6, Conviction=X7)
+
+West_Midlands_2019 <- West_Midlands_2019 %>%
+  rename(Weapon=X1, Age_Range=X2, Victim_Gender=X3, Victim_Ethnicity=X4,Offender_Gender= X5, Offender_Ethnicity=X6, Conviction=X7)
+
+West_Midlands_2010 <- West_Midlands_2010[-1 ,]
+rownames(West_Midlands_2010) <- NULL
+
+West_Midlands_2011 <- West_Midlands_2011[-1 ,]
+rownames(West_Midlands_2011) <- NULL
+West_Midlands_2012 <- West_Midlands_2012[-1 ,]
+rownames(West_Midlands_2012) <- NULL
+West_Midlands_2013 <- West_Midlands_2013[-1 ,]
+rownames(West_Midlands_2013) <- NULL
+West_Midlands_2014 <- West_Midlands_2014[-1 ,]
+rownames(West_Midlands_2014) <- NULL
+West_Midlands_2015 <- West_Midlands_2015[-1 ,]
+rownames(West_Midlands_2015) <- NULL
+West_Midlands_2016 <- West_Midlands_2016[-1 ,]
+rownames(West_Midlands_2016) <- NULL
+West_Midlands_2017 <- West_Midlands_2017[-1 ,]
+rownames(West_Midlands_2017) <- NULL
+West_Midlands_2018 <- West_Midlands_2018[-1 ,]
+rownames(West_Midlands_2018) <- NULL
+West_Midlands_2019 <- West_Midlands_2019[-1 ,]
+rownames(West_Midlands_2019) <- NULL
+
+example <- (West_Midlands_2010, West_Midlands_2012)
+rownames(example) <- NULL
+rownames(West_Midlands_2010) <- NULL
+ rownames(West_Midlands_2012) <- NULL
+ rm(example)
+ 
+ West_Midlands_2010 <- West_Midlands_2010 %>% 
+   mutate(Offender_Ethnicity=NA)
+  West_Midlands_2010 <- West_Midlands_2010 %>% 
+   mutate(Year='2010')
+ 
+ 
+  West_Midlands_2011 <- West_Midlands_2011 %>% 
+   mutate(Offender_Ethnicity=NA)
+   West_Midlands_2011 <- West_Midlands_2011 %>% 
+     mutate(Year='2011')
+  
+WM_2010_2011 <- rbind(West_Midlands_2010, West_Midlands_2011)
+
+West_Midlands_2012 <- West_Midlands_2012[ ,c(1,2,3,4,5,7,6)]
+West_Midlands_2012 <- West_Midlands_2012 %>% 
+     mutate(Year='2012')
+
+
+WM_2010_2012 <- rbind(WM_2010_2011, West_Midlands_2012)
+
+West_Midlands_2013 <- West_Midlands_2013[ ,c(1,2,3,4,5,7,6)]
+West_Midlands_2013 <- West_Midlands_2013 %>% 
+     mutate(Year='2013')
+WM_2010_2013 <- rbind(WM_2010_2012, West_Midlands_2013)
+
+
+
+West_Midlands_2014 <- West_Midlands_2014[ ,c(1,2,3,4,5,7,6)]
+West_Midlands_2014 <- West_Midlands_2014 %>% 
+     mutate(Year='2014')
+WM_2010_2014 <- rbind(WM_2010_2013, West_Midlands_2014)
+
+West_Midlands_2015 <- West_Midlands_2015[ ,c(1,2,3,4,5,6, 8, 7)]
+WM_2010_2014<- WM_2010_2014 %>% 
+  mutate(Weapon=NA)
+West_Midlands_2015 <- West_Midlands_2015[ ,c(2,3,4,5,6,7,8,1)]
+West_Midlands_2015 <- West_Midlands_2015 %>% 
+     mutate(Year='2015')
+
+WM_2010_2015 <- rbind(WM_2010_2014, West_Midlands_2015)
+
+West_Midlands_2016 <- West_Midlands_2016[ ,c(1,2,3,4,5,7,6)]
+West_Midlands_2016 <- West_Midlands_2016%>% 
+  mutate(Weapon=NA)
+West_Midlands_2016 <- West_Midlands_2016%>% 
+  mutate(Year='2016')
+WM_2010_2016 <- rbind(WM_2010_2015, West_Midlands_2016)
+
+
+install.packages('sjmisc')
+library(sjmisc)
+
+West_Midlands_2017<- West_Midlands_2017[ ,c(2,3,4,5,7,6,1)]
+West_Midlands_2017<- West_Midlands_2017%>% 
+                       mutate(Cause=NA)
+West_Midlands_2017<- West_Midlands_2017%>% 
+                       mutate(Year='2017')
+
+
+West_Midlands_2017 <- West_Midlands_2017[ ,c(1,2,3,4,5,6,7,9,8)]
+
+WM_2010_2017 <- rbind(WM_2010_2016, West_Midlands_2017)
+
+
+West_Midlands_2018 <- West_Midlands_2018 %>% 
+  mutate(Cause=NA, Year='2018')
+West_Midlands_2018 <- West_Midlands_2018[ ,c(2,3,4,8,5,7,6,9,1)]
+
+WM_2010_2018 <- rbind(WM_2010_2017, West_Midlands_2018)
+
+West_Midlands_2019 <- West_Midlands_2019 %>% 
+  mutate(Cause=NA, Year='2019')
+West_Midlands_2019<- West_Midlands_2019[ ,c(2,3,4,8,5,7,6,9,1)]
+
+WM_2010_2019 <- rbind(WM_2010_2018, West_Midlands_2019)
+
+West_Midlands_cleaned <- WM_2010_2019
+write.csv(West_Midlands_cleaned, 'West_Midlands_cleaned.csv')
+
+rm(West_Midlands_2010,West_Midlands_2011,West_Midlands_2012,West_Midlands_2013,West_Midlands_2014,West_Midlands_2015,West_Midlands_2016,West_Midlands_2017,West_Midlands_2018,West_Midlands_2019)
+rm(WM_2010_2019)
+
+```
+
+
+#Importing Cumbria to clean 
+
+```{r}
+library(readr)
+library(readxl)
+
+Cumbria_Outcome <- read_excel('to_clean_Cumbria.xlsx', sheet=1)
+Cumbria_Victim_Solved <- read_excel('to_clean_Cumbria.xlsx', sheet=2)
+Cumbria_Victim_Unsolved <- read_excel('to_clean_Cumbria.xlsx', sheet=3)
+Cumbria_Offender_Solved <- read_excel('to_clean_Cumbria.xlsx', sheet=4)
+
+```
+
