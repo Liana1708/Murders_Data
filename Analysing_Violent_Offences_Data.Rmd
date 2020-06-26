@@ -101,9 +101,7 @@ group_by(RAPE, YEAR) %>%
   group_by(RAPE) %>% 
   summarise(total=sum(TOTAL))
                   
-                     
-       #Child abuse (Rape)
-       
+                   
        
 ```
 
