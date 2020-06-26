@@ -13,7 +13,7 @@ library(tidyverse)
 library(readxl)
 ```
 
-#Set Working Directory and import the data of some police forces
+#Set working directory and import the data of some police forces
 ```{r}
 
 setwd("C:/Users/MikasaServer/Desktop/SJIC/R ANALYSIS/FOI MURDERS")
@@ -133,7 +133,7 @@ to_clean_North_Wales <- to_clean_North_Wales[-c(1,2), ]
 
   ```
   
-#More data from PDFs. 
+#Extracting more data from PDFs. 
 ```{r}
  
 Derbyshire_1<-as.data.frame(tabulizer::extract_tables("Derbyshire pdf.PDF", pages=1))
@@ -293,12 +293,12 @@ South_Wales$OFFENCE_DATE[44] <- dmy('01/12/2015')
  write.csv(South_Wales_2012, 'South_Wales_2012.csv')
  write.csv(South_Wales_2013, 'South Wales 2013.csv')
  write.csv(South_Wales_2014, 'South_Wales_2014.csv')
-  write.csv(South_Wales_2015, 'South_Wales_2015.csv')
-   write.csv(South_Wales_2016, 'South_Wales_2016.csv')
-    write.csv(South_Wales_2017, 'South_Wales_2017.csv')
-     write.csv(South_Wales_2018, 'South_Wales_2018.csv')
-      write.csv(South_Wales_2019, 'South_Wales_2019.csv')
-       write.csv(South_Wales_2020, 'South_Wales_2020.csv')
+ write.csv(South_Wales_2015, 'South_Wales_2015.csv')
+ write.csv(South_Wales_2016, 'South_Wales_2016.csv')
+ write.csv(South_Wales_2017, 'South_Wales_2017.csv')
+ write.csv(South_Wales_2018, 'South_Wales_2018.csv')
+ write.csv(South_Wales_2019, 'South_Wales_2019.csv')
+ write.csv(South_Wales_2020, 'South_Wales_2020.csv')
 
   
 #WEST MIDLANDS
@@ -316,7 +316,7 @@ West_Midlands_2017 <- as.data.frame(tabulizer::extract_tables("West Midlands pdf
 West_Midlands_2018 <- as.data.frame(tabulizer::extract_tables("West Midlands pdf/2018.pdf"))
 West_Midlands_2019 <- as.data.frame(tabulizer::extract_tables("West Midlands pdf/2019.pdf"))
 
-#Cant bind rows West Midlands. Diff columns names. Pendiente analise, clean and join. 
+#Cant bind rows West Midlands. Diff columns names. Pending analysis. 
 
 
 ```
