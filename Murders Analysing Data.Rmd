@@ -13,6 +13,7 @@ library(dplyr)
 library(readr)
 library(tidyverse)
 library(ggplot2)
+
 Vic_Ethn_Derbyshire <- Derbyshire %>% 
   group_by(Victims_Ethnicity) %>% 
   summarise(total=n())
